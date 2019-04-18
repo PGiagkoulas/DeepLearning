@@ -1,0 +1,4 @@
+Dependencies:
+
+pytorch and torchvision: see https://pytorch.org/ for installation
+pytorch-ignite: pip install pytorch-ignite
