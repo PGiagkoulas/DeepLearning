@@ -1,6 +1,7 @@
 # main.py
 import os
 import argparse
+from keras.optimizers import rmsprop
 from keras.callbacks import ModelCheckpoint
 from keras.utils import to_categorical
 from keras.datasets import cifar10, cifar100
@@ -56,7 +57,8 @@ if __name__ == '__main__':
 		save_weights_only=True, 
 		period=args.save_interval)
 	model.compile(
-		optimizer='adam', 
+                #oprimizer='adam',
+		optimizer=rmsprop(lr=0.0001, decay=1e-6), 
 		loss='categorical_crossentropy', 
 		metrics=['accuracy'])
 	model.fit(
