@@ -1,4 +1,13 @@
 Dependencies:
 
+keras: 
+(For Lukas): pip install h5py; conda install keras-gpu
+
+
+
+
+
+
+pytorch (no longer used):
 pytorch and torchvision: see https://pytorch.org/ for installation
 pytorch-ignite: pip install pytorch-ignite

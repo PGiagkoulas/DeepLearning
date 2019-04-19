@@ -1,120 +1,69 @@
 # main.py
+import os
+import argparse
+from keras.callbacks import ModelCheckpoint
+from keras.utils import to_categorical
+from keras.datasets import cifar10, cifar100
 
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-import torchvision
-import torchvision.transforms as transforms
+from networks import *
+from utils import load_model, save_model_architecture
 
-from ignite.engine import Events, create_supervised_trainer, create_supervised_evaluator
-from ignite.metrics import Accuracy, Loss
+bool_flag = lambda x: True if x.lower() in {'true', '1'} else False
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+parser = argparse.ArgumentParser(description='Run a model.')
+parser.add_argument('--model_name', type=str, default='test2',
+                    help='Name of the model. Loads model with same name automatically.')
+parser.add_argument('--dataset', type=str, default='cifar100',
+                    help='Dataset to use. [cifar10/cifar100]')
+parser.add_argument('--save_interval', type=int, default=1,
+                    help='Save every x epochs.')
+parser.add_argument('--batch_size', type=int, default=64,
+                    help='Batch size. Default 64.')
+parser.add_argument('--n_epochs', type=int, default=1,
+                    help='Number of epochs to train for. Default 1.')
 
+args = parser.parse_args()
+args.model_path = os.path.join('models', args.model_name)
+args.initial_epoch = 0 
 
-class AllConvNet(nn.Module):
-	def __init__(self, num_classes):
-		super(AllConvNet, self).__init__()
-		self.num_classes = num_classes
-		self.conv1 = nn.Sequential(
-			nn.Conv2d(3, 96, 3, padding=1), nn.ReLU(),
-			nn.Conv2d(96, 96, 3, padding=1), nn.ReLU()
-			)
-		self.max_pool = nn.MaxPool2d((3, 3), 2) 
-		self.conv2 = nn.Sequential(
-			nn.Conv2d(96, 192, 3, padding=1), nn.ReLU(),
-			nn.Conv2d(192, 192, 3, padding=1), nn.ReLU()
-			)
-		self.conv3 = nn.Sequential(
-			nn.Conv2d(192, 192, 3, padding=1), nn.ReLU(),
-			nn.Conv2d(192, 192, 1), nn.ReLU(),
-			nn.Conv2d(192, num_classes, 1), nn.ReLU()
-			)
-		# softmax included in xe loss
+if not os.path.isdir('models'):
+	os.mkdir('models')
 
-	def forward(self, x):
-		x = self.conv1(x)
-		x = self.max_pool(x)
-		x = self.conv2(x)
-		x = self.max_pool(x)
-		x = self.conv3(x)
-		x = F.avg_pool2d(x, kernel_size=x.size()[2:])
-		return x.squeeze()
+# --- LOAD DATA ---
+if args.dataset == 'cifar100':
+	(x_train, y_train), (x_test, y_test) = cifar100.load_data()
+	args.n_outputs = 100
+elif args.dataset == 'cifar10':
+	(x_train, y_train), (x_test, y_test) = cifar10.load_data()
+	args.n_outputs = 10
+y_train = to_categorical(y_train)
+y_test = to_categorical(y_test)
 
 
-class SimpleConvNet(nn.Module):
-	def __init__(self, num_classes):
-		super(SimpleConvNet, self).__init__()
-		self.num_classes = num_classes
-		self.conv1 = nn.Sequential(
-			nn.Conv2d(3, 96, 3, padding=1), nn.ReLU(),
-			nn.Conv2d(96, 96, 3, padding=1), nn.ReLU()
-			)
-		self.max_pool = nn.MaxPool2d((2,2))
-
-		self.conv2 = nn.Sequential(
-			nn.Conv2d(96, 96, 3, padding=1), nn.ReLU(),
-			nn.Conv2d(96, 96, 3, padding=1), nn.ReLU()
-			)
-
-		self.max_pool2 = nn.MaxPool2d((2,2))
-
-		self.fc = nn.Linear(96*8*8, 10)
-
-	def forward(self, x):
-		x = self.conv1(x)
-		x = self.max_pool(x)
-		x = self.conv2(x)
-		x = self.max_pool2(x)
-
-		x = x.view(-1, 96*8*8)
-		x = self.fc(x)
-		return x
-
-
-
+# --- LOAD MODEL ---
+if os.path.isdir(args.model_path):
+	model = load_model(args)
+else:
+	os.mkdir(args.model_path)
+	model = all_conv_net(args)
+	save_model_architecture(model, args)
 
 if __name__ == '__main__':
-	
-	model = AllConvNet(10).to(device)
-
-
-	transform = transforms.Compose(
-		[transforms.ToTensor(),
-		 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-
-	trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
-											download=True, transform=transform)
-	train_loader = torch.utils.data.DataLoader(trainset, batch_size=32,
-											  shuffle=True, num_workers=2)
-
-	testset = torchvision.datasets.CIFAR10(root='./data', train=False,
-										   download=True, transform=transform)
-
-	test_loader = torch.utils.data.DataLoader(testset, batch_size=32,
-                                         shuffle=False, num_workers=2)
-
-
-	optimizer = optim.Adam(model.parameters())
-	loss_fn = nn.CrossEntropyLoss()
-
-	trainer = create_supervised_trainer(model, optimizer, loss_fn, device=device)
-	evaluator = create_supervised_evaluator(model, metrics={'accuracy': Accuracy(), 'loss': Loss(loss_fn)}, device=device)
-
-	@trainer.on(Events.EPOCH_COMPLETED)
-	def log_training_results(trainer):
-	    evaluator.run(train_loader)
-	    metrics = evaluator.state.metrics
-	    print("Training Results - Epoch: {}  Avg accuracy: {:.2f} Avg loss: {:.2f}"
-	          .format(trainer.state.epoch, metrics['accuracy'], metrics['loss']))
-
-	@trainer.on(Events.EPOCH_COMPLETED)
-	def log_validation_results(trainer):
-	    evaluator.run(test_loader)
-	    metrics = evaluator.state.metrics
-	    print("Validation Results - Epoch: {}  Avg accuracy: {:.2f} Avg loss: {:.2f}"
-	          .format(trainer.state.epoch, metrics['accuracy'], metrics['loss']))
-
-
-	trainer.run(train_loader, max_epochs=10)
+	checkpt = ModelCheckpoint(
+		os.path.join(args.model_path,'weights.ep{epoch:03d}.val{val_acc:.3f}.hdf5'), 
+		save_weights_only=True, 
+		period=args.save_interval)
+	model.compile(
+		optimizer='adam', 
+		loss='categorical_crossentropy', 
+		metrics=['accuracy'])
+	model.fit(
+		x_train, 
+		y_train, 
+		validation_data=(x_test, y_test),
+		initial_epoch=args.initial_epoch, 
+		epochs=args.n_epochs+args.initial_epoch, 
+		batch_size=args.batch_size, 
+		callbacks=[checkpt])
+	# model.evaluate(x_test, y_test,
+	# 	batch_size=args.batch_size)
