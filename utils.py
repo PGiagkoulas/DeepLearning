@@ -10,10 +10,7 @@ def load_model(args):
 	model.load_weights(os.path.join(args.model_path, models[-1]))
 	args.initial_epoch = int(models[-1].split('.')[1][2:])
 
-	# print(type(args.model_name))
-	# print(type(models[-1]))
 	print("Loaded weights from: {}/{}".format(args.model_name, models[-1]))
-	# print("Loaded weights from: {}/{}".format(args.model_name, models[-1]))
 	return model
 
 def save_model_architecture(model, args):

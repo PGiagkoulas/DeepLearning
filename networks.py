@@ -17,3 +17,10 @@ def all_conv_net(args):
 	model.add(GlobalAveragePooling2D())
 	model.add(Activation('softmax'))
 	return model
+
+
+
+
+MODELS = {
+	'all_conv': all_conv_net 
+}

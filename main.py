@@ -13,6 +13,8 @@ bool_flag = lambda x: True if x.lower() in {'true', '1'} else False
 parser = argparse.ArgumentParser(description='Run a model.')
 parser.add_argument('--model_name', type=str, default='test2',
                     help='Name of the model. Loads model with same name automatically.')
+parser.add_argument('--architecture', type=str, default='all_conv',
+                    help='Architecture to use. Note: this will be ignored if model_name is a different architecture.')
 parser.add_argument('--dataset', type=str, default='cifar100',
                     help='Dataset to use. [cifar10/cifar100]')
 parser.add_argument('--save_interval', type=int, default=1,
@@ -45,7 +47,7 @@ if os.path.isdir(args.model_path):
 	model = load_model(args)
 else:
 	os.mkdir(args.model_path)
-	model = all_conv_net(args)
+	model = MODELS[args.architecture](args)
 	save_model_architecture(model, args)
 
 if __name__ == '__main__':
