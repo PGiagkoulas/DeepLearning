@@ -57,8 +57,8 @@ if __name__ == '__main__':
 		save_weights_only=True, 
 		period=args.save_interval)
 	model.compile(
-                #oprimizer='adam',
-		optimizer=rmsprop(lr=0.0001, decay=1e-6), 
+                #optimizer='adam',
+		optimizer=rmsprop(lr=0.0001, decay=1e-6),
 		loss='categorical_crossentropy', 
 		metrics=['accuracy'])
 	model.fit(

@@ -39,11 +39,25 @@ def simple_conv_net(args):
         model.add(Dense(512))
         model.add(Activation('relu'))
         model.add(Dropout(0.5))
-        model.add(Dense(num_classes))
+        model.add(Dense(args.n_outputs))
         model.add(Activation('softmax'))
         return model
 
+def pre_vgg16_net(args):
+        model = VGG16(weights="imagenet", include_top=False)
+        # freeze conv layers
+        for layer in model.layers:
+            layer.trainable = False
+        model.add(Flatten())
+        model.add(Dense(512))
+        model.add(Activation('relu'))
+        #model.add(Dropout(0.5))
+        model.add(Dense(args.n_outputs))
+        model.add(Activation('softmax'))
+        return model
+        
 MODELS = {
 	'all_conv': all_conv_net,
-        'simple_conv': simple_conv_net
+        'simple_conv': simple_conv_net,
+        'pre_vgg16': pre_vgg16_net
 }
