@@ -13,17 +13,17 @@ bool_flag = lambda x: True if x.lower() in {'true', '1'} else False
 
 parser = argparse.ArgumentParser(description='Run a model.')
 parser.add_argument('--model_name', type=str, default='test2',
-                    help='Name of the model. Loads model with same name automatically.')
+					help='Name of the model. Loads model with same name automatically.')
 parser.add_argument('--architecture', type=str, default='all_conv',
-                    help='Architecture to use. Note: this will be ignored if model_name is a different architecture.')
+					help='Architecture to use. Note: this will be ignored if model_name is a different architecture.')
 parser.add_argument('--dataset', type=str, default='cifar100',
-                    help='Dataset to use. [cifar10/cifar100]')
+					help='Dataset to use. [cifar10/cifar100]')
 parser.add_argument('--save_interval', type=int, default=1,
-                    help='Save every x epochs.')
+					help='Save every x epochs.')
 parser.add_argument('--batch_size', type=int, default=64,
-                    help='Batch size. Default 64.')
+					help='Batch size. Default 64.')
 parser.add_argument('--n_epochs', type=int, default=1,
-                    help='Number of epochs to train for. Default 1.')
+					help='Number of epochs to train for. Default 1.')
 
 args = parser.parse_args()
 args.model_path = os.path.join('models', args.model_name)
@@ -57,7 +57,7 @@ if __name__ == '__main__':
 		save_weights_only=True, 
 		period=args.save_interval)
 	model.compile(
-                #optimizer='adam',
+				#optimizer='adam',
 		optimizer=rmsprop(lr=0.0001, decay=1e-6),
 		loss='categorical_crossentropy', 
 		metrics=['accuracy'])
