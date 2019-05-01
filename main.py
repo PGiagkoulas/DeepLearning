@@ -12,10 +12,10 @@ from utils import load_model, save_model_architecture
 parser = argparse.ArgumentParser(description='Run a model.')
 parser.add_argument('--model_name', type=str, default='test',
 					help='Name of the model. Loads model with same name automatically.')
-parser.add_argument('--architecture', type=str, default='densenet',
+parser.add_argument('--architecture', type=str, default='vgg16',
 					help='Architecture to use. Note: this will be ignored if model_name is a different architecture.')
 parser.add_argument('--pretrained', action='store_true',
-					help='Use "--pretrained" for a model pretrained on imagenet. VGG/ResNet/Inception only.')
+					help='Use "--pretrained" for a model pretrained on imagenet. VGG/ResNet/DenseNet only currently.')
 parser.add_argument('--dataset', type=str, default='cifar100',
 					help='Dataset to use. [cifar10/cifar100]')
 parser.add_argument('--save_interval', type=int, default=1,
@@ -28,8 +28,6 @@ parser.add_argument('--n_epochs', type=int, default=1,
 args = parser.parse_args()
 args.model_path = os.path.join('models', args.model_name)
 args.initial_epoch = 0 
-
-args.pretrained =True
 
 if not os.path.isdir('models'):
 	os.mkdir('models')
