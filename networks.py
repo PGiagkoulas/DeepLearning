@@ -6,21 +6,22 @@ from keras.models import Sequential
 from keras.applications.vgg16 import VGG16
 from keras.applications.resnet50 import ResNet50
 from keras.applications.densenet import DenseNet121
+from keras.regularizers import l2
 
 def all_conv_net(args):
 	model = Sequential()
 	model.add(Dropout(0.2))
-	model.add(Conv2D(96, kernel_size=3, activation='relu', input_shape=(32,32,3), padding='same'))
-	model.add(Conv2D(96, kernel_size=3, activation='relu', padding='same'))
+	model.add(Conv2D(96, kernel_size=3, activation='relu', input_shape=args.input_shape, padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(Conv2D(96, kernel_size=3, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
 	model.add(MaxPooling2D((3,3), strides=2))
 	model.add(Dropout(0.5))
-	model.add(Conv2D(192, kernel_size=3, activation='relu', padding='same'))
-	model.add(Conv2D(192, kernel_size=3, activation='relu', padding='same'))
+	model.add(Conv2D(192, kernel_size=3, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(Conv2D(192, kernel_size=3, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
 	model.add(MaxPooling2D((3,3), strides=2))
 	model.add(Dropout(0.5))
-	model.add(Conv2D(192, kernel_size=3, activation='relu', padding='same'))
-	model.add(Conv2D(192, kernel_size=1, activation='relu', padding='same'))
-	model.add(Conv2D(args.n_outputs, kernel_size=1, activation='relu', padding='same'))
+	model.add(Conv2D(192, kernel_size=3, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(Conv2D(192, kernel_size=1, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(Conv2D(args.n_outputs, kernel_size=1, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
 	model.add(GlobalAveragePooling2D())
 	#model.add(Dropout(0.5))
 	model.add(Activation('softmax'))
@@ -29,7 +30,7 @@ def all_conv_net(args):
 
 def simple_conv_net(args):
 	model = Sequential()
-	model.add(Conv2D(32, (3, 3), padding='same', input_shape=(32, 32, 3)))
+	model.add(Conv2D(32, (3, 3), padding='same', input_shape=args.input_shape))
 	model.add(Activation('relu'))
 	model.add(Conv2D(32, (3, 3)))
 	model.add(Activation('relu'))
@@ -55,11 +56,11 @@ def simple_conv_net(args):
 def prebuilt_model(args, model):
 	""" Any of the pre-built keras models """
 	if args.pretrained:
-		prebuilt = model(weights='imagenet', input_shape=(32,32,3), include_top=False)
+		prebuilt = model(weights='imagenet', input_shape=args.input_shape, include_top=False)
 		for layer in prebuilt.layers:
 			layer.trainable = False
 	else:
-		prebuilt = model(weights=None, input_shape=(32,32,3), include_top=False)
+		prebuilt = model(weights=None, input_shape=args.input_shape, include_top=False)
 	model = Sequential()
 	model.add(prebuilt)
 	model.add(Activation('relu'))
@@ -73,11 +74,11 @@ def prebuilt_model(args, model):
 def vgg16(args):
 	""" Any of the pre-built keras models """
 	if args.pretrained:
-		prebuilt = VGG16(weights='imagenet', input_shape=(32,32,3), include_top=False)
+		prebuilt = VGG16(weights='imagenet', input_shape=args.input_shape, include_top=False)
 		for layer in prebuilt.layers:
 			layer.trainable = False
 	else:
-		prebuilt = VGG16(weights=None, input_shape=(32,32,3), include_top=False)
+		prebuilt = VGG16(weights=None, input_shape=args.input_shape, include_top=False)
 	model = Sequential()
 	model.add(prebuilt)
 	model.add(Flatten())
