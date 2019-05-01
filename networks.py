@@ -58,15 +58,36 @@ def prebuilt_model(args, model):
 		prebuilt = model(weights='imagenet', input_shape=(32,32,3), include_top=False)
 		for layer in prebuilt.layers:
 			layer.trainable = False
-		model = Sequential()
-		model.add(prebuilt)
-		model.add(Flatten())
-		model.add(Dense(512))
-		model.add(Activation('relu'))
-		model.add(Dense(args.n_outputs))
-		model.add(Activation('softmax'))
 	else:
-		model = model(weights=None, input_shape=(32,32,3), include_top=True, classes=args.n_outputs)
+		prebuilt = model(weights=None, input_shape=(32,32,3), include_top=False)
+	model = Sequential()
+	model.add(prebuilt)
+	model.add(Activation('relu'))
+	model.add(Dense(args.n_outputs))
+	model.add(Activation('softmax'))
+
+	return model    
+
+
+
+def vgg16(args):
+	""" Any of the pre-built keras models """
+	if args.pretrained:
+		prebuilt = VGG16(weights='imagenet', input_shape=(32,32,3), include_top=False)
+		for layer in prebuilt.layers:
+			layer.trainable = False
+	else:
+		prebuilt = VGG16(weights=None, input_shape=(32,32,3), include_top=False)
+	model = Sequential()
+	model.add(prebuilt)
+	model.add(Flatten())
+	model.add(Dense(4096))
+	model.add(Activation('relu'))
+	model.add(Dense(4096))
+	model.add(Activation('relu'))
+	model.add(Dense(args.n_outputs))
+	model.add(Activation('softmax'))
+
 	return model    
 
 def alex_net(args):
@@ -126,7 +147,7 @@ MODELS = {
 	'all_conv': all_conv_net,
 	'simple_conv': simple_conv_net,
 	'alex_net': alex_net,
-	'vgg16': partial(prebuilt_model, model=VGG16),
+	'vgg16': vgg16,
 	'resnet50': partial(prebuilt_model, model=ResNet50),
 	'densenet': partial(prebuilt_model, model=DenseNet121)
 }

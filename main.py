@@ -1,4 +1,5 @@
 # main.py
+import cv2
 import os
 import argparse
 from keras.optimizers import rmsprop
