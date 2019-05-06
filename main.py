@@ -1,14 +1,15 @@
 # main.py
 import os
 import argparse
+from functools import partial
 from keras.optimizers import rmsprop, adam, SGD
-from keras.callbacks import ModelCheckpoint
+from keras.callbacks import ModelCheckpoint, LearningRateScheduler
 from keras.utils import to_categorical
 from keras.datasets import cifar10, cifar100
 from keras.preprocessing.image import ImageDataGenerator
 
 from networks import *
-from utils import load_model, save_model_architecture
+from utils import load_model, save_model_architecture, all_conv_lr_schedule
 
 parser = argparse.ArgumentParser(description='Run a model.')
 parser.add_argument('--model_name', type=str, default='test',
@@ -26,13 +27,23 @@ parser.add_argument('--batch_size', type=int, default=64,
 parser.add_argument('--n_epochs', type=int, default=1,
 					help='Number of epochs to train for. Default 1.')
 parser.add_argument('--optimizer', type=str, default='adam',
-					help='Dataset to use. [cifar10/cifar100]')
+					help='Optimizer to use. [adam/rmsprop/sgd]')
 
 args = parser.parse_args()
 args.model_path = os.path.join('models', args.model_name)
 args.initial_epoch = 0 
+args.optimizer_name = args.optimizer
 
 args.input_shape = (32, 32, 3)
+
+OPTIMIZERS = {
+	'adam': adam,
+	'rmsprop': partial(rmsprop, decay=1e-6),
+	'sgd': SGD,
+	'all_conv_sgd': partial(SGD, momentum=0.9)
+}
+
+args.optimizer = OPTIMIZERS[args.optimizer]
 
 if not os.path.isdir('models'):
 	os.mkdir('models')
@@ -47,10 +58,10 @@ elif args.dataset == 'cifar10':
 
 y_train = to_categorical(y_train)
 y_test = to_categorical(y_test)
-train_idg = ImageDataGenerator()
-test_idg = ImageDataGenerator()
-train_idg.fit(x_train)
-test_idg.fit(x_test)
+# train_idg = ImageDataGenerator()
+# test_idg = ImageDataGenerator()
+# train_idg.fit(x_train)
+# test_idg.fit(x_test)
 
 # --- LOAD MODEL ---
 if args.model_name == 'test':
@@ -64,40 +75,30 @@ else:
 
 if __name__ == '__main__':
 	
-	checkpt = ModelCheckpoint(
-		os.path.join(args.model_path,'weights.ep{epoch:03d}.val{val_acc:.3f}.hdf5'), 
-		save_weights_only=True, 
-		period=args.save_interval)
+	callbacks = []
+	if args.model_name != 'test':
+		checkpt = ModelCheckpoint(
+			os.path.join(args.model_path,'weights.ep{epoch:03d}.val{val_acc:.3f}.hdf5'), 
+			save_weights_only=True, 
+			period=args.save_interval)
+		callbacks.append(checkpt)
+
+	if args.optimizer_name == 'all_conv_sgd':
+		lrs = LearningRateScheduler(all_conv_lr_schedule)
+		callbacks.append(lrs)
 
 	model.compile(
 		# optimizer=SGD(lr=0.0001, momentum=0.9, decay=)
-		optimizer=rmsprop(lr=0.0001, decay=1e-6),
+		optimizer=args.optimizer(lr=0.01),
 		loss='categorical_crossentropy', 
 		metrics=['accuracy'])
 	
+	model.fit(
+		x_train, 
+		y_train, 
+		validation_data=(x_test, y_test),
+		initial_epoch=args.initial_epoch, 
+		epochs=args.n_epochs+args.initial_epoch, 
+		batch_size=args.batch_size, 
+		callbacks=callbacks)
 
-	if args.model_name == 'test':
-		model.fit_generator(train_idg.flow(
-			x_train, 
-			y_train,
-			batch_size=args.batch_size),
-			validation_data=test_idg.flow(x_test, y_test, batch_size=args.batch_size),
-			validation_steps=len(x_test)/args.batch_size,
-			initial_epoch=args.initial_epoch, 
-			epochs=args.n_epochs+args.initial_epoch, 
-			steps_per_epoch=len(x_train)/args.batch_size,
-			)
-	else:
-		model.fit_generator(train_idg.flow(
-			x_train, 
-			y_train,
-			batch_size=args.batch_size),
-			validation_data=test_idg.flow(x_test, y_test, batch_size=args.batch_size),
-			validation_steps=len(x_test)/args.batch_size,
-			initial_epoch=args.initial_epoch, 
-			epochs=args.n_epochs+args.initial_epoch, 
-			steps_per_epoch=len(x_train)/args.batch_size,
-			callbacks=[checkpt]
-			)
-	# model.evaluate(x_test, y_test,
-	# 	batch_size=args.batch_size)

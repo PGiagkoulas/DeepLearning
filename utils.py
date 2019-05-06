@@ -27,3 +27,14 @@ def load_model_architecture(args):
 	yaml_file.close()
 	return model_from_yaml(model_yaml)
 
+
+def all_conv_lr_schedule(epoch_num):
+	lr = 0.01
+	if epoch_num < 200:
+		return lr
+	elif epoch_num < 250:
+		return 0.1 * lr
+	elif epoch_num < 300:
+		return 0.01 * lr
+	else:
+		return 0.001 * lr

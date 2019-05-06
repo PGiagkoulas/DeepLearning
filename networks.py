@@ -27,6 +27,26 @@ def all_conv_net(args):
 	model.add(Activation('softmax'))
 	return model
 
+def all_all_conv_net(args):
+	model = Sequential()
+	model.add(Dropout(0.2))
+	model.add(Conv2D(96, kernel_size=3, activation='relu', input_shape=args.input_shape, padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(Conv2D(96, kernel_size=3, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(Conv2D(96, kernel_size=3, activation='relu', padding='same', strides=2, kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(Dropout(0.5))
+	model.add(Conv2D(192, kernel_size=3, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(Conv2D(192, kernel_size=3, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(Conv2D(192, kernel_size=3, activation='relu', padding='same', strides=2, kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(Dropout(0.5))
+	model.add(Conv2D(192, kernel_size=3, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(Conv2D(192, kernel_size=1, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(Conv2D(args.n_outputs, kernel_size=1, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(GlobalAveragePooling2D())
+	#model.add(Dropout(0.5))
+	model.add(Activation('softmax'))
+	return model
+
+
 
 def simple_conv_net(args):
 	model = Sequential()
@@ -63,6 +83,7 @@ def prebuilt_model(args, model):
 		prebuilt = model(weights=None, input_shape=args.input_shape, include_top=False)
 	model = Sequential()
 	model.add(prebuilt)
+	model.add(Flatten())
 	model.add(Activation('relu'))
 	model.add(Dense(args.n_outputs))
 	model.add(Activation('softmax'))
@@ -119,6 +140,7 @@ def lenet5(args):
 
 MODELS = {
 	'all_conv': all_conv_net,
+	'all_all_conv': all_all_conv_net,
 	'simple_conv': simple_conv_net,
 	'lenet5': lenet5,
 	'vgg16': partial(prebuilt_model, model=VGG16),
