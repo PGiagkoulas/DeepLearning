@@ -1,7 +1,7 @@
 # networks.py
 from functools import partial
 
-from keras.layers import Dense, Activation, Conv2D, Flatten, MaxPooling2D, GlobalAveragePooling2D, Dropout
+from keras.layers import Dense, Activation, Conv2D, Flatten, MaxPooling2D, GlobalAveragePooling2D, Dropout, BatchNormalization
 from keras.models import Sequential
 from keras.applications.vgg16 import VGG16
 from keras.applications.resnet50 import ResNet50
@@ -72,6 +72,29 @@ def simple_conv_net(args):
 	model.add(Activation('softmax'))
 	return model
 
+def simple_bn_conv_net(args):
+	model = Sequential()
+	model.add(Conv2D(32, (3, 3), padding='same', input_shape=args.input_shape))
+	model.add(Activation('relu'))
+	model.add(Conv2D(32, (3, 3), use_bias=False))
+	model.add(BatchNormalization())
+	model.add(Activation('relu'))
+	model.add(MaxPooling2D(pool_size=(2, 2)))
+
+	model.add(Conv2D(64, (3, 3), padding='same'))
+	model.add(Activation('relu'))
+	model.add(Conv2D(64, (3, 3), use_bias=False))
+	model.add(BatchNormalization())
+	model.add(Activation('relu'))
+	model.add(MaxPooling2D(pool_size=(2, 2)))
+
+	model.add(Flatten())
+	model.add(Dense(512, use_bias=False))
+	model.add(BatchNormalization())
+	model.add(Activation('relu'))
+	model.add(Dense(args.n_outputs))
+	model.add(Activation('softmax'))
+	return model
 
 def prebuilt_model(args, model):
 	""" Any of the pre-built keras models """
@@ -116,11 +139,11 @@ def vgg16(args):
 
 def lenet5(args):
         model = Sequential()
-        # 1st Conv + ReLU + AvgPool
-        model.add(Conv2D(10, kernel_size=(5,5), input_shape=(32, 32, 3)))
+        # 1st Conv + ReLU + MaxPool
+        model.add(Conv2D(10, kernel_size=(5,5), input_shape=args.input_shape))
         model.add(Activation('relu'))
         model.add(MaxPooling2D(pool_size=(2, 2)))
-        # 2nd Conv + ReLU + AvgPool
+        # 2nd Conv + ReLU + MaxPool
         model.add(Conv2D(32, kernel_size=(5,5)))
         model.add(Activation('relu'))
         model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -133,7 +156,7 @@ def lenet5(args):
         model.add(Dense(84))
         model.add(Activation('relu'))
         # Output
-        model.add(Dense(10))
+        model.add(Dense(args.n_outputs))
         model.add(Activation('softmax'))
 
         return model
@@ -142,6 +165,7 @@ MODELS = {
 	'all_conv': all_conv_net,
 	'all_all_conv': all_all_conv_net,
 	'simple_conv': simple_conv_net,
+        'simple_bn_conv': simple_bn_conv_net,
 	'lenet5': lenet5,
 	'vgg16': partial(prebuilt_model, model=VGG16),
 	'resnet50': partial(prebuilt_model, model=ResNet50),
