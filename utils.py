@@ -8,7 +8,7 @@ def load_model(args):
 	print(model.layers)
 	# Next load weights, load from latest epoch
 	models = os.listdir(args.model_path)
-	# print(models[-1])
+	# TODO: Check if models[-1] is the latest epoch on stupid Linux file-ordering system
 	model.load_weights(os.path.join(args.model_path, models[-1]))
 	args.initial_epoch = int(models[-1].split('.')[1][2:])
 
@@ -31,6 +31,7 @@ def load_model_architecture(args):
 
 
 def all_conv_lr_schedule(epoch_num):
+	""" Learning rate schedule taken from Striving for Simplicity"""
 	lr = 0.01
 	if epoch_num < 200:
 		return lr

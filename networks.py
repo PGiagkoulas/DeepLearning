@@ -8,7 +8,8 @@ from keras.applications.resnet50 import ResNet50
 from keras.applications.densenet import DenseNet121
 from keras.regularizers import l2
 
-def all_conv_net(args):
+def model_c(args):
+	"""Model C from Striving for Simplicity: The All Convolutional Net """
 	model = Sequential()
 	model.add(Dropout(0.2, input_shape=args.input_shape))
 	model.add(Conv2D(96, kernel_size=3, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
@@ -27,7 +28,29 @@ def all_conv_net(args):
 	model.add(Activation('softmax'))
 	return model
 
-def all_all_conv_net(args):
+def model_all_cnn_c(args):
+	"""Model All-CNN-C from Striving for Simplicity: The All Convolutional Net """
+	model = Sequential()
+	model.add(Dropout(0.2, input_shape=args.input_shape))
+	model.add(Conv2D(96, kernel_size=3, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(Conv2D(96, kernel_size=3, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(Conv2D(96, kernel_size=3, activation='relu', padding='same', strides=2, kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(Dropout(0.5))
+	model.add(Conv2D(192, kernel_size=3, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(Conv2D(192, kernel_size=3, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(Conv2D(192, kernel_size=3, activation='relu', padding='same', strides=2, kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(Dropout(0.5))
+	model.add(Conv2D(192, kernel_size=3, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(Conv2D(192, kernel_size=1, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(Conv2D(args.n_outputs, kernel_size=1, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(GlobalAveragePooling2D())
+	model.add(Activation('softmax'))
+	return model
+
+def model_all_cnn_c_bn(args):
+	"""	Model All-CNN-C from Striving for Simplicity: The All Convolutional Net 
+		Added: Batch normalization
+	"""
 	model = Sequential()
 	model.add(Dropout(0.2, input_shape=args.input_shape))
 	model.add(Conv2D(96, kernel_size=3, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
@@ -45,17 +68,14 @@ def all_all_conv_net(args):
 	model.add(BatchNormalization())
 	model.add(Dropout(0.5))
 	model.add(Conv2D(192, kernel_size=3, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
-	# model.add(BatchNormalization())
 	model.add(Conv2D(192, kernel_size=1, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
 	model.add(Conv2D(args.n_outputs, kernel_size=1, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
 	model.add(GlobalAveragePooling2D())
-	#model.add(Dropout(0.5))
 	model.add(Activation('softmax'))
 	return model
 
-
-
 def simple_conv_net(args):
+	""" CNN from https://keras.io/examples/cifar10_cnn/ """
 	model = Sequential()
 	model.add(Conv2D(32, (3, 3), padding='same', input_shape=args.input_shape))
 	model.add(Activation('relu'))
@@ -79,6 +99,29 @@ def simple_conv_net(args):
 	model.add(Activation('softmax'))
 	return model
 
+def simple_bn_conv_net(args):
+	model = Sequential()
+	model.add(Conv2D(32, (3, 3), padding='same', input_shape=args.input_shape))
+	model.add(Activation('relu'))
+	model.add(Conv2D(32, (3, 3), use_bias=False))
+	model.add(BatchNormalization())
+	model.add(Activation('relu'))
+	model.add(MaxPooling2D(pool_size=(2, 2)))
+
+	model.add(Conv2D(64, (3, 3), padding='same'))
+	model.add(Activation('relu'))
+	model.add(Conv2D(64, (3, 3), use_bias=False))
+	model.add(BatchNormalization())
+	model.add(Activation('relu'))
+	model.add(MaxPooling2D(pool_size=(2, 2)))
+
+	model.add(Flatten())
+	model.add(Dense(512, use_bias=False))
+	model.add(BatchNormalization())
+	model.add(Activation('relu'))
+	model.add(Dense(args.n_outputs))
+	model.add(Activation('softmax'))
+	return model
 
 def prebuilt_model(args, model):
 	""" Any of the pre-built keras models """
@@ -100,7 +143,6 @@ def prebuilt_model(args, model):
 
 
 def vgg16(args):
-	""" Any of the pre-built keras models """
 	if args.pretrained:
 		prebuilt = VGG16(weights='imagenet', input_shape=args.input_shape, include_top=False)
 		for layer in prebuilt.layers:
@@ -123,11 +165,11 @@ def vgg16(args):
 
 def lenet5(args):
         model = Sequential()
-        # 1st Conv + ReLU + AvgPool
-        model.add(Conv2D(10, kernel_size=(5,5), input_shape=(32, 32, 3)))
+        # 1st Conv + ReLU + MaxPool
+        model.add(Conv2D(10, kernel_size=(5,5), input_shape=args.input_shape))
         model.add(Activation('relu'))
         model.add(MaxPooling2D(pool_size=(2, 2)))
-        # 2nd Conv + ReLU + AvgPool
+        # 2nd Conv + ReLU + MaxPool
         model.add(Conv2D(32, kernel_size=(5,5)))
         model.add(Activation('relu'))
         model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -140,15 +182,17 @@ def lenet5(args):
         model.add(Dense(84))
         model.add(Activation('relu'))
         # Output
-        model.add(Dense(10))
+        model.add(Dense(args.n_outputs))
         model.add(Activation('softmax'))
 
         return model
 
 MODELS = {
-	'all_conv': all_conv_net,
-	'all_all_conv': all_all_conv_net,
+	'all_conv': model_all_cnn_c,
+	'all_bn_conv': model_all_cnn_c_bn,
+	'model_c': model_c,
 	'simple_conv': simple_conv_net,
+    'simple_bn_conv': simple_bn_conv_net,
 	'lenet5': lenet5,
 	'vgg16': partial(prebuilt_model, model=VGG16),
 	'resnet50': partial(prebuilt_model, model=ResNet50),
