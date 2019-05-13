@@ -5,8 +5,10 @@ from keras.models import model_from_yaml
 def load_model(args):
 	# Load model architecture first
 	model = load_model_architecture(args)
+	print(model.layers)
 	# Next load weights, load from latest epoch
 	models = os.listdir(args.model_path)
+	# print(models[-1])
 	model.load_weights(os.path.join(args.model_path, models[-1]))
 	args.initial_epoch = int(models[-1].split('.')[1][2:])
 

@@ -40,7 +40,8 @@ OPTIMIZERS = {
 	'adam': adam,
 	'rmsprop': partial(rmsprop, decay=1e-6),
 	'sgd': SGD,
-	'all_conv_sgd': partial(SGD, momentum=0.9)
+	'all_conv_sgd': partial(SGD, momentum=0.9, lr=0.01),
+	'all_conv_adam': partial(adam, lr=0.0001)
 }
 
 args.optimizer = OPTIMIZERS[args.optimizer]
@@ -89,7 +90,7 @@ if __name__ == '__main__':
 
 	model.compile(
 		# optimizer=SGD(lr=0.0001, momentum=0.9, decay=)
-		optimizer=args.optimizer(lr=0.01),
+		optimizer=args.optimizer(),
 		loss='categorical_crossentropy', 
 		metrics=['accuracy'])
 	

@@ -1,7 +1,7 @@
 # networks.py
 from functools import partial
 
-from keras.layers import Dense, Activation, Conv2D, Flatten, MaxPooling2D, GlobalAveragePooling2D, Dropout
+from keras.layers import Dense, Activation, Conv2D, Flatten, MaxPooling2D, GlobalAveragePooling2D, Dropout, BatchNormalization
 from keras.models import Sequential
 from keras.applications.vgg16 import VGG16
 from keras.applications.resnet50 import ResNet50
@@ -10,8 +10,8 @@ from keras.regularizers import l2
 
 def all_conv_net(args):
 	model = Sequential()
-	model.add(Dropout(0.2))
-	model.add(Conv2D(96, kernel_size=3, activation='relu', input_shape=args.input_shape, padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(Dropout(0.2, input_shape=args.input_shape))
+	model.add(Conv2D(96, kernel_size=3, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
 	model.add(Conv2D(96, kernel_size=3, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
 	model.add(MaxPooling2D((3,3), strides=2))
 	model.add(Dropout(0.5))
@@ -29,16 +29,23 @@ def all_conv_net(args):
 
 def all_all_conv_net(args):
 	model = Sequential()
-	model.add(Dropout(0.2))
-	model.add(Conv2D(96, kernel_size=3, activation='relu', input_shape=args.input_shape, padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(Dropout(0.2, input_shape=args.input_shape))
 	model.add(Conv2D(96, kernel_size=3, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(BatchNormalization())
+	model.add(Conv2D(96, kernel_size=3, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(BatchNormalization())
 	model.add(Conv2D(96, kernel_size=3, activation='relu', padding='same', strides=2, kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(BatchNormalization())
 	model.add(Dropout(0.5))
 	model.add(Conv2D(192, kernel_size=3, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(BatchNormalization())
 	model.add(Conv2D(192, kernel_size=3, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(BatchNormalization())
 	model.add(Conv2D(192, kernel_size=3, activation='relu', padding='same', strides=2, kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	model.add(BatchNormalization())
 	model.add(Dropout(0.5))
 	model.add(Conv2D(192, kernel_size=3, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
+	# model.add(BatchNormalization())
 	model.add(Conv2D(192, kernel_size=1, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
 	model.add(Conv2D(args.n_outputs, kernel_size=1, activation='relu', padding='same', kernel_regularizer=l2(0.0005), bias_regularizer=l2(0.0005)))
 	model.add(GlobalAveragePooling2D())
