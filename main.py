@@ -43,7 +43,7 @@ args.input_shape = (32, 32, 3)
 
 OPTIMIZERS = {
 	'adam': adam,
-	'rmsprop': rmsprop(rho=0.9, epsilon=None, decay=0),
+	'rmsprop': partial(rmsprop, rho=0.9, epsilon=None, decay=0),
 	'sgd': partial(SGD, momentum=0.9),
 	'all_conv_sgd': partial(SGD, momentum=0.9)
 }
