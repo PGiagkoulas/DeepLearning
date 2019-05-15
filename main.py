@@ -15,8 +15,8 @@ from utils import load_model, save_model_architecture, all_conv_lr_schedule
 parser = argparse.ArgumentParser(description='Run a model.')
 parser.add_argument('--model_name', type=str, default='test',
 					help='Name of the model. Loads model with same name automatically.')
-parser.add_argument('--architecture', type=str, default='lenet5',
-					help='Architecture to use. Note: this will be ignored if model_name is a different architecture.')
+parser.add_argument('--architecture', type=str, default='simple_conv',
+					help='Architecture to use. Note: this will be ignored if model_name is already saved with a different architecture.')
 parser.add_argument('--pretrained', action='store_true',
 					help='Use "--pretrained" for a model pretrained on imagenet. VGG/ResNet/DenseNet only currently.')
 parser.add_argument('--dataset', type=str, default='cifar10',
@@ -29,28 +29,32 @@ parser.add_argument('--n_epochs', type=int, default=100,
 					help='Number of epochs to train for. Default 1.')
 parser.add_argument('--optimizer', type=str, default='sgd',
 					help='Optimizer to use. [adam/rmsprop/sgd]')
-parser.add_argument('--export', type=str, default='l5_sgd_10',
+parser.add_argument('--lr', type=float, default=1e-3,
+					help='Learning rate.')
+parser.add_argument('--export', type=str, default='none',
 					help='Name the file with the training progress of the model. Default function does not export resuts')
+
+# --- Initialize experiment ---
 args = parser.parse_args()
 args.model_path = os.path.join('models', args.model_name)
 args.initial_epoch = 0 
 args.optimizer_name = args.optimizer
-
 args.input_shape = (32, 32, 3)
 
 OPTIMIZERS = {
-	'adam': adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-8, decay=0.0),
-	'rmsprop': rmsprop(lr=0.0001, rho=0.9, epsilon=None, decay=0),
-	'sgd': SGD,
+	'adam': adam,
+	'rmsprop': partial(rmsprop, rho=0.9, epsilon=None, decay=0),
+	'sgd': partial(SGD, momentum=0.9),
 	'all_conv_sgd': partial(SGD, momentum=0.9)
 }
 
 args.optimizer = OPTIMIZERS[args.optimizer]
 
-if not os.path.isdir('models'):
-	os.mkdir('models')
+if args.model_name != 'test':
+	if not os.path.isdir('models'):
+		os.mkdir('models')
 
-# --- LOAD DATA ---
+# --- Load data ---
 if args.dataset == 'cifar100':
 	(x_train, y_train), (x_test, y_test) = cifar100.load_data(label_mode='fine')
 	args.n_outputs = 100
@@ -60,12 +64,8 @@ elif args.dataset == 'cifar10':
 
 y_train = to_categorical(y_train)
 y_test = to_categorical(y_test)
-# train_idg = ImageDataGenerator()
-# test_idg = ImageDataGenerator()
-# train_idg.fit(x_train)
-# test_idg.fit(x_test)
 
-# --- LOAD MODEL ---
+# --- Load model ---
 if args.model_name == 'test':
 	model = MODELS[args.architecture](args)	
 elif os.path.isdir(args.model_path):
@@ -75,26 +75,27 @@ else:
 	model = MODELS[args.architecture](args)
 	save_model_architecture(model, args)
 
+
 if __name__ == '__main__':
 	
 	callbacks = []
-	if args.model_name != 'test':
+	if args.model_name != 'test': # add saving after each epoch
 		checkpt = ModelCheckpoint(
 			os.path.join(args.model_path,'weights.ep{epoch:03d}.val{val_acc:.3f}.hdf5'), 
 			save_weights_only=True, 
 			period=args.save_interval)
 		callbacks.append(checkpt)
 
-	if args.optimizer_name == 'all_conv_sgd':
+	if args.optimizer_name == 'all_conv_sgd': # use exact LR schedule from Striving for Simplicity
 		lrs = LearningRateScheduler(all_conv_lr_schedule)
 		callbacks.append(lrs)
 
 	model.compile(
-		# optimizer=SGD(lr=0.0001, momentum=0.9, decay=)
-		optimizer=args.optimizer(lr=0.0001),
+		optimizer=args.optimizer(lr=args.lr),
 		loss='categorical_crossentropy', 
 		metrics=['accuracy'])
 	
+	# --- Run experiment ---
 	hist = model.fit(
 		x_train, 
 		y_train, 
