@@ -161,12 +161,70 @@ def lenet5(args):
 
         return model
 
+def lenet5_bn(args):
+        model = Sequential()
+        # 1st Conv + ReLU + MaxPool
+        model.add(Conv2D(10, kernel_size=(5,5), input_shape=args.input_shape, use_bias=False))
+        model.add(BatchNormalization())
+        model.add(Activation('relu'))
+        model.add(MaxPooling2D(pool_size=(2, 2)))
+        # 2nd Conv + ReLU + MaxPool
+        model.add(Conv2D(32, kernel_size=(5,5), use_bias=False))
+        model.add(BatchNormalization())
+        model.add(Activation('relu'))
+        model.add(MaxPooling2D(pool_size=(2, 2)))
+        # Flatten
+        model.add(Flatten())
+        # 3rd FC
+        model.add(Dense(120, use_bias=False))
+        model.add(BatchNormalization())
+        model.add(Activation('relu'))
+        model.add(Dropout(0.5))
+        # 4th FC
+        model.add(Dense(84, use_bias=False))
+        model.add(BatchNormalization())
+        model.add(Activation('relu'))
+        model.add(Dropout(0.5))
+        # Output
+        model.add(Dense(args.n_outputs))
+        model.add(Activation('softmax'))
+
+        return model
+
+def lenet5_do(args):
+        model = Sequential()
+        # 1st Conv + ReLU + MaxPool
+        model.add(Conv2D(10, kernel_size=(5,5), input_shape=args.input_shape))
+        model.add(Activation('relu'))
+        model.add(MaxPooling2D(pool_size=(2, 2)))
+        model.add(Dropout(0.25))
+        # 2nd Conv + ReLU + MaxPool
+        model.add(Conv2D(32, kernel_size=(5,5)))
+        model.add(Activation('relu'))
+        model.add(MaxPooling2D(pool_size=(2, 2)))
+        model.add(Dropout(0.25))
+        # Flatten
+        model.add(Flatten())
+        # 3rd FC
+        model.add(Dense(120))
+        model.add(Activation('relu'))
+        # 4th FC
+        model.add(Dense(84))
+        model.add(Activation('relu'))
+        # Output
+        model.add(Dense(args.n_outputs))
+        model.add(Activation('softmax'))
+
+        return model
+
 MODELS = {
 	'all_conv': all_conv_net,
 	'all_all_conv': all_all_conv_net,
 	'simple_conv': simple_conv_net,
         'simple_bn_conv': simple_bn_conv_net,
 	'lenet5': lenet5,
+        'lenet5_do': lenet5_do,
+        'lenet5_bn': lenet5_bn,
 	'vgg16': partial(prebuilt_model, model=VGG16),
 	'resnet50': partial(prebuilt_model, model=ResNet50),
 	'densenet': partial(prebuilt_model, model=DenseNet121),
