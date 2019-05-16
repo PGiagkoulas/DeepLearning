@@ -3,6 +3,7 @@ Comparative report of deep learning architectures on the [CIFAR](https://www.cs.
 
 ## Requirements
 You need to have Anaconda or Miniconda installed:
+
 [Miniconda](https://conda.io/en/latest/miniconda.html)
 
 [Anaconda](https://www.anaconda.com/distribution/)
@@ -21,7 +22,7 @@ python main.py
 ```
 There are a number of flags available to modify the experiment:
 ```bat
---model_name               Name of the model. Loads model with same name automatically.
+--model_name               Name of the model. Loads model with same name automatically. Flag must be used for the model to be saved.
 --architecture             Architecture to use. [list of architectures below] 
 --dataset                  Dataset to use. [cifar10/cifar100]
 --save_interval            Save every x epochs.
