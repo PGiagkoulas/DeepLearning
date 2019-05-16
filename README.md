@@ -24,6 +24,7 @@ There are a number of flags available to modify the experiment:
 ```
 --model_name               Name of the model. Loads model with same name automatically. Flag must be used for the model to be saved.
 --architecture             Architecture to use. [list of architectures below] 
+--pretrained               If provided, will load a model pretrained on ImageNet and only the last layer is trained. Valid for VGG/ResNet/DenseNet.
 --dataset                  Dataset to use. [cifar10/cifar100]
 --save_interval            Save every x epochs.
 --batch_size               Batch size for training and testing.
