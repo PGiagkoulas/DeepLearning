@@ -21,7 +21,7 @@ To run an experiment, run:
 python main.py
 ```
 There are a number of flags available to modify the experiment:
-```bat
+```
 --model_name               Name of the model. Loads model with same name automatically. Flag must be used for the model to be saved.
 --architecture             Architecture to use. [list of architectures below] 
 --dataset                  Dataset to use. [cifar10/cifar100]
@@ -33,7 +33,7 @@ There are a number of flags available to modify the experiment:
 --export                   Export the training statistics to a file.
 ```
 Supported architectures:
-```bat
+```
 all_conv                   Regular All-CNN-C from Springenberg et al.
 all_bn_conv                All-CNN-C with batch normalization
 model_c                    Model C from Springenberg et al.
