@@ -1,7 +1,8 @@
 # DeepLearning
 Comparative report of deep learning architectures on the [CIFAR](https://www.cs.toronto.edu/~kriz/cifar.html) dataset.
 
-## You need to have anaconda or miniconda installed
+## Requirements
+You need to have Anaconda or Miniconda installed:
 [Miniconda](https://conda.io/en/latest/miniconda.html)
 
 [Anaconda](https://www.anaconda.com/distribution/)
@@ -12,7 +13,41 @@ To install the environment run:
 conda env create -f environment.yml
 ```
 
-## Reproducing results
+
+## Running the code
+To run an experiment, run:
+```bat
+python main.py
+```
+There are a number of flags available to modify the experiment:
+```bat
+--model_name               Name of the model. Loads model with same name automatically.
+--architecture             Architecture to use. [list of architectures below] 
+--dataset                  Dataset to use. [cifar10/cifar100]
+--save_interval            Save every x epochs.
+--batch_size               Batch size for training and testing.
+--n_epochs                 Number of epochs to train for.
+--optimizer                Optimizer to use. [adam/rmsprop/sgd]
+--lr                       Learning rate.
+--export                   Export the training statistics to a file.
+```
+Supported architectures:
+```bat
+all_conv                   Regular All-CNN-C from Springenberg et al.
+all_bn_conv                All-CNN-C with batch normalization
+model_c                    Model C from Springenberg et al.
+simple_conv                Simple CNN from Keras
+simple_bn_conv             Simple CNN with batch norm
+lenet5                     LeNet5
+lenet5_do                  LeNet5 with dropout
+lenet5_bn                  LeNet5 with batch norm
+vgg16                      VGG16
+resnet50                   ResNet50
+densenet                   DenseNet
+```
+
+
+<!-- ## Reproducing results
 * CIFAR-10:
   * Simple CNN with Adam optimizer:
     * Using Dropout:
@@ -60,3 +95,4 @@ conda env create -f environment.yml
     ```
 * CIFAR-100:
 Run the same commands with --dataset cifar100
+ -->
