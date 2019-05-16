@@ -13,8 +13,14 @@ To install the environment run:
 ```bat
 conda env create -f environment.yml
 ```
-
-
+After installing, you may need to activate the environment, using either
+```bat
+source activate keras_env
+```
+or 
+```bat
+activate keras_env
+```
 ## Running the code
 To run an experiment, run:
 ```bat
