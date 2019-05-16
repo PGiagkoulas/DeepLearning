@@ -10,6 +10,8 @@ You need to have Anaconda or Miniconda installed:
 
 [Anaconda](https://www.anaconda.com/distribution/)
 
+You also need a GPU with CUDA support. 
+
 ## Environment
 To install the environment run:
 ```bat
