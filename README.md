@@ -1,6 +1,8 @@
 # DeepLearning
 Comparative report of deep learning architectures on the [CIFAR](https://www.cs.toronto.edu/~kriz/cifar.html) dataset.
 
+By [Panagiotis Giagkoulas](https://github.com/PGiagkoulas) and [Lukas Edman](https://github.com/Leukas).
+
 ## Requirements
 You need to have Anaconda or Miniconda installed:
 
