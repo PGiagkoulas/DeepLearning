@@ -53,6 +53,11 @@ vgg16                      VGG16
 resnet50                   ResNet50
 densenet                   DenseNet
 ```
+An example run of Simple CNN with batch normalization on CIFAR-10 using Adam looks like:
+```bat
+python main.py --architecture simple_bn_conv --dataset cifar10 --save-interval 1 --batch_size 64 --n_epochs 100 --optimizer adam --lr 1e-3 
+```
+
 
 
 <!-- ## Reproducing results
